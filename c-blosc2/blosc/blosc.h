@@ -24,75 +24,104 @@ extern "C" {
 
 #define BLOSC_VERSION_STRING   "2.0.0a4.dev"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2016-03-28 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2016-08-04 #$"    /* date version */
 
-#define BLOSCLZ_VERSION_STRING "1.0.5"   /* the internal compressor version */
+#define BLOSCLZ_VERSION_STRING "1.0.6"   /* the internal compressor version */
+
+/* Have problems using posix barriers when symbol value is 200112L */
+/* This requires more investigation, but will work for the moment */
+#if defined(_POSIX_BARRIERS) && ((_POSIX_BARRIERS - 20012L) >= 0 && _POSIX_BARRIERS != 200112L)
+#define BLOSC_POSIX_BARRIERS_MINE
+#endif
+
+
 
 /* The *_FORMAT symbols below should be just 1-byte long */
+enum {
+  /* Blosc format version, starting at 1
+     1 -> Basically for Blosc pre-1.0
+     2 -> Blosc 1.x series
+     3 -> Blosc 2.x series */
+  BLOSC_VERSION_FORMAT = 3,
+};
 
-#define BLOSC_VERSION_FORMAT    3
-/* Blosc format version, starting at 1
-   1 -> Basically for Blosc pre-1.0
-   2 -> Blosc 1.x series
-   3 -> Blosc 2.x series */
-
-/* Minimum header length */
-#define BLOSC_MIN_HEADER_LENGTH 16
-
-/* The maximum overhead during compression in bytes.  This equals to
-   BLOSC_MIN_HEADER_LENGTH now, but can be higher in future
-   implementations */
-#define BLOSC_MAX_OVERHEAD BLOSC_MIN_HEADER_LENGTH
-
-/* Maximum source buffer size to be compressed */
-#define BLOSC_MAX_BUFFERSIZE (INT_MAX - BLOSC_MAX_OVERHEAD)
-
-/* Maximum typesize before considering source buffer as a stream of bytes */
-#define BLOSC_MAX_TYPESIZE 255         /* Cannot be larger than 255 */
+enum {
+  BLOSC_MIN_HEADER_LENGTH = 16,
+  /* Minimum header length */
+  BLOSC_EXTENDED_HEADER_LENGTH = 32,
+  /* Extended header length (see README_HEADER) */
+  BLOSC_MAX_OVERHEAD = BLOSC_MIN_HEADER_LENGTH,
+  /* The maximum overhead during compression in bytes.  This equals to
+     BLOSC_MIN_HEADER_LENGTH now, but can be higher in future
+     implementations */
+  BLOSC_MAX_BUFFERSIZE = (INT_MAX - BLOSC_MAX_OVERHEAD),
+  /* Maximum source buffer size to be compressed */
+  BLOSC_MAX_TYPESIZE = 255,
+  /* Maximum typesize before considering source buffer as a stream of bytes */
+  /* Cannot be larger than 255 */
+  BLOSC_MIN_BUFFERSIZE = 128,       /* Cannot be smaller than 66 */
+  /* Minimum buffer size to be compressed */
+};
 
 /* Codes for filters (see blosc_compress) */
-#define BLOSC_NOSHUFFLE   0  /* no shuffle (for compatibility with Blosc1) */
-#define BLOSC_NOFILTER    0  /* no filter */
-#define BLOSC_SHUFFLE     1  /* byte-wise shuffle */
-#define BLOSC_BITSHUFFLE  2  /* bit-wise shuffle */
-#define BLOSC_DELTA       3  /* delta filter */
+enum {
+  BLOSC_NOSHUFFLE = 0,   /* no shuffle (for compatibility with Blosc1) */
+  BLOSC_NOFILTER = 0,    /* no filter */
+  BLOSC_SHUFFLE = 1,     /* byte-wise shuffle */
+  BLOSC_BITSHUFFLE = 2,  /* bit-wise shuffle */
+  BLOSC_DELTA = 3,       /* delta filter */
+  BLOSC_TRUNC_PREC = 4,  /* truncate precision filter */
+  BLOSC_LAST_FILTER= 5,  /* sentinel */
+};
 
-/* Maximum number of simultaneous filters */
-#define BLOSC_MAX_FILTERS 5
+enum {
+  BLOSC_MAX_FILTERS = 5,
+  /* Maximum number of filters in the filter pipeline */
+};
 
 /* Codes for internal flags (see blosc_cbuffer_metainfo) */
-#define BLOSC_DOSHUFFLE     0x1  /* byte-wise shuffle */
-#define BLOSC_MEMCPYED      0x2  /* plain copy */
-#define BLOSC_DOBITSHUFFLE  0x4  /* bit-wise shuffle */
-#define BLOSC_FILTER_SCHUNK 0x8  /* filter defined in super-chunk */
+enum {
+  BLOSC_DOSHUFFLE = 0x1,     /* byte-wise shuffle */
+  BLOSC_MEMCPYED = 0x2,      /* plain copy */
+  BLOSC_DOBITSHUFFLE = 0x4,  /* bit-wise shuffle */
+  BLOSC_DODELTA = 0x8,       /* delta coding */
+};
 
 /* Codes for the different compressors shipped with Blosc */
-#define BLOSC_BLOSCLZ        0
-#define BLOSC_LZ4            1
-#define BLOSC_LZ4HC          2
-#define BLOSC_SNAPPY         3
-#define BLOSC_ZLIB           4
-#define BLOSC_ZSTD           5
+enum {
+  BLOSC_BLOSCLZ = 0,
+  BLOSC_LZ4 = 1,
+  BLOSC_LZ4HC = 2,
+  BLOSC_SNAPPY = 3,
+  BLOSC_ZLIB = 4,
+  BLOSC_ZSTD = 5,
+  BLOSC_LIZARD = 6,
+};
 
 /* Names for the different compressors shipped with Blosc */
 #define BLOSC_BLOSCLZ_COMPNAME   "blosclz"
 #define BLOSC_LZ4_COMPNAME       "lz4"
 #define BLOSC_LZ4HC_COMPNAME     "lz4hc"
+#define BLOSC_LIZARD_COMPNAME    "lizard"
 #define BLOSC_SNAPPY_COMPNAME    "snappy"
 #define BLOSC_ZLIB_COMPNAME      "zlib"
 #define BLOSC_ZSTD_COMPNAME      "zstd"
 
 /* Codes for compression libraries shipped with Blosc (code must be < 8) */
-#define BLOSC_BLOSCLZ_LIB    0
-#define BLOSC_LZ4_LIB        1
-#define BLOSC_SNAPPY_LIB     2
-#define BLOSC_ZLIB_LIB       3
-#define BLOSC_ZSTD_LIB       4
-#define BLOSC_SCHUNK_LIB     7   /* compressor library in super-chunk header */
+enum {
+  BLOSC_BLOSCLZ_LIB = 0,
+  BLOSC_LZ4_LIB = 1,
+  BLOSC_SNAPPY_LIB = 2,
+  BLOSC_ZLIB_LIB = 3,
+  BLOSC_ZSTD_LIB = 4,
+  BLOSC_LIZARD_LIB = 5,
+  BLOSC_SCHUNK_LIB = 7,   /* compressor library in super-chunk header */
+};
 
 /* Names for the different compression libraries shipped with Blosc */
 #define BLOSC_BLOSCLZ_LIBNAME   "BloscLZ"
 #define BLOSC_LZ4_LIBNAME       "LZ4"
+#define BLOSC_LIZARD_LIBNAME    "Lizard"
 #define BLOSC_SNAPPY_LIBNAME    "Snappy"
 #if defined(HAVE_MINIZ)
   #define BLOSC_ZLIB_LIBNAME    "Zlib (via miniz)"
@@ -102,23 +131,28 @@ extern "C" {
 #define BLOSC_ZSTD_LIBNAME      "Zstd"
 
 /* The codes for compressor formats shipped with Blosc */
-#define BLOSC_BLOSCLZ_FORMAT  BLOSC_BLOSCLZ_LIB
-#define BLOSC_LZ4_FORMAT      BLOSC_LZ4_LIB
-/* LZ4HC and LZ4 share the same format */
-#define BLOSC_LZ4HC_FORMAT    BLOSC_LZ4_LIB
-#define BLOSC_SNAPPY_FORMAT   BLOSC_SNAPPY_LIB
-#define BLOSC_ZLIB_FORMAT     BLOSC_ZLIB_LIB
-#define BLOSC_ZSTD_FORMAT     BLOSC_ZSTD_LIB
-
+enum {
+  BLOSC_BLOSCLZ_FORMAT = BLOSC_BLOSCLZ_LIB,
+  BLOSC_LZ4_FORMAT = BLOSC_LZ4_LIB,
+  /* LZ4HC and LZ4 share the same format */
+  BLOSC_LZ4HC_FORMAT = BLOSC_LZ4_LIB,
+  BLOSC_LIZARD_FORMAT = BLOSC_LIZARD_LIB,
+  BLOSC_SNAPPY_FORMAT = BLOSC_SNAPPY_LIB,
+  BLOSC_ZLIB_FORMAT = BLOSC_ZLIB_LIB,
+  BLOSC_ZSTD_FORMAT = BLOSC_ZSTD_LIB,
+};
 
 /* The version formats for compressors shipped with Blosc */
 /* All versions here starts at 1 */
-#define BLOSC_BLOSCLZ_VERSION_FORMAT  1
-#define BLOSC_LZ4_VERSION_FORMAT      1
-#define BLOSC_LZ4HC_VERSION_FORMAT    1  /* LZ4HC and LZ4 share the same format */
-#define BLOSC_SNAPPY_VERSION_FORMAT   1
-#define BLOSC_ZLIB_VERSION_FORMAT     1
-#define BLOSC_ZSTD_VERSION_FORMAT     1
+enum {
+  BLOSC_BLOSCLZ_VERSION_FORMAT = 1,
+  BLOSC_LZ4_VERSION_FORMAT = 1,
+  BLOSC_LZ4HC_VERSION_FORMAT = 1,  /* LZ4HC and LZ4 share the same format */
+  BLOSC_LIZARD_VERSION_FORMAT = 1,
+  BLOSC_SNAPPY_VERSION_FORMAT = 1,
+  BLOSC_ZLIB_VERSION_FORMAT = 1,
+  BLOSC_ZSTD_VERSION_FORMAT = 1,
+};
 
 /**
   Initialize the Blosc library environment.
@@ -152,8 +186,8 @@ BLOSC_EXPORT void blosc_destroy(void);
   `doshuffle` specifies whether the shuffle compression preconditioner
   should be applied or not.  BLOSC_NOFILTER means not applying filters,
   BLOSC_SHUFFLE means applying shuffle at a byte level and
-  BLOSC_BITSHUFFLE at a bit level (slower but may achieve better
-  entropy alignment).
+  BLOSC_BITSHUFFLE at a bit level (slower but *may* achieve better
+  compression).
 
   `typesize` is the number of bytes for the atomic type in binary
   `src` buffer.  This is mainly useful for the shuffle preconditioner.
@@ -191,12 +225,15 @@ BLOSC_EXPORT void blosc_destroy(void);
   overwrite the `doshuffle` parameter before the compression process
   starts.
 
+  BLOSC_DELTA=(1|0): This will call blosc_set_delta() before the
+  compression process starts.
+
   BLOSC_TYPESIZE=(INTEGER): This will overwrite the `typesize`
   parameter before the compression process starts.
 
-  BLOSC_COMPRESSOR=[BLOSCLZ | LZ4 | LZ4HC | SNAPPY | ZLIB]: This will
-  call blosc_set_compressor(BLOSC_COMPRESSOR) before the compression
-  process starts.
+  BLOSC_COMPRESSOR=[BLOSCLZ | LZ4 | LZ4HC | LIZARD | SNAPPY | ZLIB]:
+  This will call blosc_set_compressor(BLOSC_COMPRESSOR) before the
+  compression process starts.
 
   BLOSC_NTHREADS=(INTEGER): This will call
   blosc_set_nthreads(BLOSC_NTHREADS) before the compression process
@@ -211,8 +248,8 @@ BLOSC_EXPORT void blosc_destroy(void);
   the hood, with the `compressor`, `blocksize` and
   `numinternalthreads` parameters set to the same as the last calls to
   blosc_set_compressor(), blosc_set_blocksize() and
-  blosc_set_nthreads().  BLOSC_CLEVEL, BLOSC_SHUFFLE, BLOSC_TYPESIZE
-  environment vars will also be honored.
+  blosc_set_nthreads().  BLOSC_CLEVEL, BLOSC_SHUFFLE, BLOSC_DELTA and
+  BLOSC_TYPESIZE environment vars will also be honored.
 */
 BLOSC_EXPORT int blosc_compress(int clevel, int doshuffle, size_t typesize,
                                 size_t nbytes, const void* src, void* dest,
@@ -280,7 +317,7 @@ BLOSC_EXPORT int blosc_set_nthreads(int nthreads);
 
 
 /**
-  Returns the current compressor that is used for compression.
+  Return the current compressor that is used for compression.
   */
 BLOSC_EXPORT char* blosc_get_compressor(void);
 
@@ -295,6 +332,15 @@ BLOSC_EXPORT char* blosc_get_compressor(void);
   the compressor (>=0).
 */
 BLOSC_EXPORT int blosc_set_compressor(const char* compname);
+
+
+/**
+  Select the delta coding filter to be used.  If a value >0 is passed, the
+  delta filter will be active.  If 0, it will be de-activated.
+
+  This call should always succeed.
+*/
+BLOSC_EXPORT void blosc_set_delta(int dodelta);
 
 
 /**
@@ -352,7 +398,8 @@ BLOSC_EXPORT char* blosc_get_version_string(void);
   If the compressor is supported, it returns the code for the library
   (>=0).  If it is not supported, this function returns -1.
 */
-BLOSC_EXPORT int blosc_get_complib_info(char* compname, char** complib, char** version);
+BLOSC_EXPORT int blosc_get_complib_info(char* compname, char** complib,
+                                        char** version);
 
 
 /**
@@ -386,11 +433,13 @@ BLOSC_EXPORT void blosc_cbuffer_sizes(const void* cbuffer, size_t* nbytes,
   The `flags` is a set of bits, where the currently used ones are:
     * bit 0: whether the shuffle filter has been applied or not
     * bit 1: whether the internal buffer is a pure memcpy or not
+    * bit 2: whether the bitshuffle filter has been applied or not
+    * bit 3: whether the delta coding filter has been applied or not
 
-  You can use the `BLOSC_DOSHUFFLE`, `BLOSC_DOBITSHUFFLE` and
-  `BLOSC_MEMCPYED` symbols for extracting the interesting bits
-  (e.g. ``flags & BLOSC_DOSHUFFLE`` says whether the buffer is
-  byte-shuffled or not).
+  You can use the `BLOSC_DOSHUFFLE`, `BLOSC_DOBITSHUFFLE`, `BLOSC_DODELTA`
+  and `BLOSC_MEMCPYED` symbols for extracting the interesting bits
+  (e.g. ``flags & BLOSC_DOSHUFFLE`` says whether the buffer is byte-shuffled
+  or not).
 
   This function should always succeed.
 */
@@ -419,116 +468,11 @@ BLOSC_EXPORT char* blosc_cbuffer_complib(const void* cbuffer);
 
 /*********************************************************************
 
-  Super-chunk related structures and functions.
-
-*********************************************************************/
-
-typedef struct {
-  uint8_t version;
-  uint8_t flags1;
-  uint8_t flags2;
-  uint8_t flags3;
-  uint16_t compressor;
-  /* The default compressor.  Each chunk can override this. */
-  uint16_t clevel;
-  /* The compression level and other compress params */
-  uint16_t filters;
-  /* The (sequence of) filters.  3-bit per filter. */
-  uint16_t filters_meta;
-  /* Metadata for filters */
-  uint32_t chunksize;
-  /* Size of each chunk.  0 if not a fixed chunksize. */
-  int64_t nchunks;
-  /* Number of chunks in super-chunk */
-  int64_t nbytes;
-  /* data size + metadata size + header size (uncompressed) */
-  int64_t cbytes;
-  /* data size + metadata size + header size (compressed) */
-  uint8_t* filters_chunk;
-  /* Pointer to chunk hosting filter-related data */
-  uint8_t* codec_chunk;
-  /* Pointer to chunk hosting codec-related data */
-  uint8_t* metadata_chunk;
-  /* Pointer to schunk metadata */
-  uint8_t* userdata_chunk;
-  /* Pointer to user-defined data */
-  uint8_t** data;
-  /* Pointer to chunk data pointers */
-  uint8_t* ctx;
-  /* Context for the thread holder.  NULL if not acquired. */
-  uint8_t* reserved;
-  /* Reserved for the future. */
-} blosc2_sheader;
-
-
-typedef struct {
-  uint8_t compressor;
-  /* the default compressor */
-  uint8_t clevel;
-  /* the compression level and other compress params */
-  uint8_t filters[BLOSC_MAX_FILTERS];
-  /* the (sequence of) filters */
-  uint16_t filters_meta;   /* metadata for filters */
-} blosc2_sparams;
-
-/* Default struct for schunk params meant for user initialization */
-static const blosc2_sparams BLOSC_SPARAMS_DEFAULTS = \
-  { BLOSC_ZSTD, 5, {BLOSC_SHUFFLE, 0, 0, 0, 0}, 0 };
-
-/* Create a new super-chunk. */
-BLOSC_EXPORT blosc2_sheader* blosc2_new_schunk(blosc2_sparams* sparams);
-
-/* Set a delta reference for the super-chunk */
-BLOSC_EXPORT int blosc2_set_delta_ref(blosc2_sheader* sheader,
-    size_t nbytes, void* ref);
-
-/* Free all memory from a super-chunk. */
-BLOSC_EXPORT int blosc2_destroy_schunk(blosc2_sheader* sheader);
-
-/* Append a `src` data buffer to a super-chunk.
-
- `typesize` is the number of bytes of the underlying data type and
- `nbytes` is the size of the `src` buffer.
-
- This returns the number of chunk in super-chunk.  If some problem is
- detected, this number will be negative.
- */
-BLOSC_EXPORT size_t blosc2_append_buffer(blosc2_sheader* sheader,
-     size_t typesize, size_t nbytes, void* src);
-
-BLOSC_EXPORT void* blosc2_packed_append_buffer(void* packed, size_t typesize,
-                                               size_t nbytes, void* src);
-
-/* Decompress and return the `nchunk` chunk of a super-chunk.
-
- If the chunk is uncompressed successfully, it is put in the `*dest`
- pointer.  `nbytes` is the size of the area pointed by `*dest`.  You
- must make sure that you have space enough to store the uncompressed
- data.
-
- The size of the decompressed chunk is returned.  If some problem is
- detected, a negative code is returned instead.
- */
-BLOSC_EXPORT int blosc2_decompress_chunk(blosc2_sheader* sheader,
-     int64_t nchunk, void* dest, int nbytes);
-
-BLOSC_EXPORT int blosc2_packed_decompress_chunk(void* packed, int nchunk,
-      void** dest);
-
-/* Pack a super-chunk by using the header. */
-BLOSC_EXPORT void* blosc2_pack_schunk(blosc2_sheader* sheader);
-
-/* Unpack a packed super-chunk */
-BLOSC_EXPORT blosc2_sheader* blosc2_unpack_schunk(void* packed);
-
-
-/*********************************************************************
-
   Structures and functions related with contexts.
 
 *********************************************************************/
 
-typedef struct blosc_context_s blosc_context;   /* uncomplete type */
+typedef struct blosc2_context_s blosc2_context;   /* uncomplete type */
 
 /**
   The parameters for creating a context for compression purposes.
@@ -537,26 +481,28 @@ typedef struct blosc_context_s blosc_context;   /* uncomplete type */
   (zero) in the fields of the struct is passed to a function.
 */
 typedef struct {
-  uint8_t typesize;
-  /* the type size (8) */
-  uint8_t compcode;
-  /* the compressor code (BLOSC_BLOSCLZ) */
-  uint8_t clevel;
+  int compcode;
+  /* the compressor codec */
+  int clevel;
   /* the compression level (5) */
-  uint8_t filtercode;
-  /* the filter code (BLOSC_SHUFFLE) */
-  uint8_t nthreads;
+  size_t typesize;
+  /* the type size (8) */
+  uint32_t nthreads;
   /* the number of threads to use internally (1) */
-  int32_t blocksize;
+  size_t blocksize;
   /* the requested size of the compressed blocks (0; meaning automatic) */
-  blosc2_sheader* schunk;
+  void* schunk;
   /* the associated schunk, if any (NULL) */
-} blosc2_context_cparams;
+  uint8_t filters[BLOSC_MAX_FILTERS];
+  /* the (sequence of) filters */
+  uint8_t filters_meta[BLOSC_MAX_FILTERS];
+  /* metadata for filters */
+} blosc2_cparams;
 
 /* Default struct for compression params meant for user initialization */
-static const blosc2_context_cparams BLOSC_CPARAMS_DEFAULTS = \
-  { 8, BLOSC_BLOSCLZ, 5, BLOSC_SHUFFLE, 1, 0, NULL };
-
+static const blosc2_cparams BLOSC_CPARAMS_DEFAULTS = {
+        BLOSC_BLOSCLZ, 5, 8, 1, 0, NULL,
+        {0, 0, 0, 0, BLOSC_SHUFFLE}, {0, 0, 0, 0, 0} };
 
 /**
   The parameters for creating a context for decompression purposes.
@@ -565,29 +511,28 @@ static const blosc2_context_cparams BLOSC_CPARAMS_DEFAULTS = \
   (zero) in the fields of the struct is passed to a function.
 */
 typedef struct {
-  uint8_t nthreads;
+  int32_t nthreads;
   /* the number of threads to use internally (1) */
-  blosc2_sheader* schunk;
+  void* schunk;
   /* the associated schunk, if any (NULL) */
-} blosc2_context_dparams;
+} blosc2_dparams;
 
 /* Default struct for compression params meant for user initialization */
-static const blosc2_context_dparams BLOSC_DPARAMS_DEFAULTS = \
-  { 1, NULL };
+static const blosc2_dparams BLOSC_DPARAMS_DEFAULTS = { 1, NULL };
 
 /**
   Create a context for *_ctx() compression functions.
 
   A pointer to the new context is returned.  NULL is returned if this fails.
 */
-BLOSC_EXPORT blosc_context* blosc2_create_cctx(blosc2_context_cparams* cparams);
+BLOSC_EXPORT blosc2_context* blosc2_create_cctx(blosc2_cparams cparams);
 
 /**
   Create a context for *_ctx() decompression functions.
 
   A pointer to the new context is returned.  NULL is returned if this fails.
 */
-BLOSC_EXPORT blosc_context* blosc2_create_dctx(blosc2_context_dparams* dparams);
+BLOSC_EXPORT blosc2_context* blosc2_create_dctx(blosc2_dparams dparams);
 
 /**
   Free the resources associated with a context.
@@ -595,7 +540,7 @@ BLOSC_EXPORT blosc_context* blosc2_create_dctx(blosc2_context_dparams* dparams);
   This function should always succeed and is valid for contexts meant for
   both compression and decompression.
 */
-BLOSC_EXPORT void blosc2_free_ctx(blosc_context* context);
+BLOSC_EXPORT void blosc2_free_ctx(blosc2_context* context);
 
 /**
   Context interface to blosc compression. This does not require a call
@@ -613,8 +558,8 @@ BLOSC_EXPORT void blosc2_free_ctx(blosc_context* context);
   and compression settings.
 */
 BLOSC_EXPORT int blosc2_compress_ctx(
-  blosc_context* context, size_t nbytes, const void* src, void* dest,
-  size_t destsize);
+        blosc2_context* context, size_t nbytes, const void* src, void* dest,
+        size_t destsize);
 
 
 /**
@@ -634,7 +579,7 @@ BLOSC_EXPORT int blosc2_compress_ctx(
   large enough or context is not meant for decompression, then 0 (zero) or a
   negative value will be returned instead.
 */
-BLOSC_EXPORT int blosc2_decompress_ctx(blosc_context* context, const void* src,
+BLOSC_EXPORT int blosc2_decompress_ctx(blosc2_context* context, const void* src,
                                        void* dest, size_t destsize);
 
 /**
@@ -646,8 +591,103 @@ BLOSC_EXPORT int blosc2_decompress_ctx(blosc_context* context, const void* src,
   Returns the number of bytes copied to `dest` or a negative value if
   some error happens.
 */
-BLOSC_EXPORT int blosc2_getitem_ctx(blosc_context* context, const void* src,
+BLOSC_EXPORT int blosc2_getitem_ctx(blosc2_context* context, const void* src,
                                     int start, int nitems, void* dest);
+
+
+/*********************************************************************
+
+  Super-chunk related structures and functions.
+
+*********************************************************************/
+
+typedef struct {
+  uint8_t version;
+  uint8_t flags1;
+  uint8_t flags2;
+  uint8_t flags3;
+  uint8_t compcode;  // starts at 4 bytes
+  /* The default compressor.  Each chunk can override this. */
+  uint8_t clevel;  // starts at 6 bytes
+  /* The compression level and other compress params */
+  uint32_t typesize;
+  /* the type size */
+  int32_t blocksize;
+  /* the requested size of the compressed blocks (0; meaning automatic) */
+  uint32_t chunksize;   // starts at 8 bytes
+  /* Size of each chunk.  0 if not a fixed chunksize. */
+  uint8_t filters[BLOSC_MAX_FILTERS];  // starts at 12 bytes
+  /* The (sequence of) filters.  8-bit per filter. */
+  uint8_t filters_meta[BLOSC_MAX_FILTERS];
+  /* Metadata for filters. 8-bit per meta-slot. */
+  int64_t nchunks;  // starts at 28 bytes
+  /* Number of chunks in super-chunk */
+  int64_t nbytes;  // starts at 36 bytes
+  /* data size + metadata size + header size (uncompressed) */
+  int64_t cbytes;  // starts at 44 bytes
+  /* data size + metadata size + header size (compressed) */
+  uint8_t* filters_chunk;  // starts at 52 bytes
+  /* Pointer to chunk hosting filter-related data */
+  uint8_t* codec_chunk;
+  /* Pointer to chunk hosting codec-related data */
+  uint8_t* metadata_chunk;
+  /* Pointer to schunk metadata */
+  uint8_t* userdata_chunk;
+  /* Pointer to user-defined data */
+  uint8_t** data;
+  /* Pointer to chunk data pointers */
+  //uint8_t* ctx;
+  /* Context for the thread holder.  NULL if not acquired. */
+  blosc2_context* cctx;
+  blosc2_context* dctx;
+  /* Contexts for compression and decompression */
+  uint8_t* reserved;
+  /* Reserved for the future. */
+} blosc2_schunk;
+
+
+/* Create a new super-chunk. */
+BLOSC_EXPORT blosc2_schunk* blosc2_new_schunk(
+        blosc2_cparams cparams, blosc2_dparams dparams);
+
+/* Release resources from a super-chunk */
+BLOSC_EXPORT int blosc2_destroy_schunk(blosc2_schunk* sheader);
+
+/* Append a `src` data buffer to a super-chunk.
+
+ `typesize` is the number of bytes of the underlying data type and
+ `nbytes` is the size of the `src` buffer.
+
+ This returns the number of chunk in super-chunk.  If some problem is
+ detected, this number will be negative.
+ */
+BLOSC_EXPORT size_t blosc2_append_buffer(blosc2_schunk* sheader,
+                                         size_t nbytes, void* src);
+
+BLOSC_EXPORT void* blosc2_packed_append_buffer(void* packed, size_t typesize,
+                                               size_t nbytes, void* src);
+
+/* Decompress and return the `nchunk` chunk of a super-chunk.
+
+ If the chunk is uncompressed successfully, it is put in the `*dest`
+ pointer.  `nbytes` is the size of the area pointed by `*dest`.  You
+ must make sure that you have space enough to store the uncompressed
+ data.
+
+ The size of the decompressed chunk is returned.  If some problem is
+ detected, a negative code is returned instead.
+ */
+BLOSC_EXPORT int blosc2_decompress_chunk(blosc2_schunk* sheader,
+     size_t nchunk, void* dest, size_t nbytes);
+
+BLOSC_EXPORT int blosc2_packed_decompress_chunk(void* packed, size_t nchunk,
+      void** dest);
+
+/* Pack a super-chunk by using the header. */
+BLOSC_EXPORT void* blosc2_pack_schunk(blosc2_schunk* sheader);
+
+/* Unpack a packed super-chunk */
+BLOSC_EXPORT blosc2_schunk* blosc2_unpack_schunk(void* packed);
 
 
 /*********************************************************************
@@ -663,20 +703,22 @@ BLOSC_EXPORT int blosc_get_blocksize(void);
 /**
   Force the use of a specific blocksize.  If 0, an automatic
   blocksize will be used (the default).
-  */
+*/
 BLOSC_EXPORT void blosc_set_blocksize(size_t blocksize);
 
-/* Set pointer to super-chunk.  If NULL, no super-chunk will be
-   available (the default).
+/**
+  Set pointer to super-chunk.  If NULL, no super-chunk will be
+  available (the default).
 
   The blocksize is a critical parameter with important restrictions in
   the allowed values, so use this with care.
 */
-BLOSC_EXPORT void blosc_set_schunk(blosc2_sheader* schunk);
+BLOSC_EXPORT void blosc_set_schunk(blosc2_schunk* schunk);
+
 
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif
+#endif  /* BLOSC_H */

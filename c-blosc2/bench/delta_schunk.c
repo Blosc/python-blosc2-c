@@ -1,18 +1,20 @@
 /*
   Copyright (C) 2015  Francesc Alted
   http://blosc.org
-  License: MIT (see LICENSE.txt)
+  License: BSD (see LICENSE.txt)
 
   Benchmark showing Blosc filter from C code.
 
   To compile this program:
 
-  $ gcc delta_schunk.c -o delta_schunk -lblosc
+  $ gcc -O3 delta_schunk.c -o delta_schunk -lblosc
 
 */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <assert.h>
+#include <blosc.h>
 
 #if defined(_WIN32)
 /* For QueryPerformanceCounter(), etc. */
@@ -21,9 +23,7 @@
   #include <mach/clock.h>
   #include <mach/mach.h>
   #include <time.h>
-  #include <sys/time.h>
 #elif defined(__unix__)
-  #include <unistd.h>
   #if defined(__linux__)
     #include <time.h>
   #else
@@ -32,8 +32,6 @@
 #else
   #error Unable to detect platform.
 #endif
-
-#include "blosc.h"
 
 #define KB  1024
 #define MB  (1024*KB)
@@ -95,31 +93,33 @@ double getseconds(blosc_timestamp_t last, blosc_timestamp_t current) {
 
 /* Given two timeval stamps, return the time per chunk in usec */
 double get_usec_chunk(blosc_timestamp_t last, blosc_timestamp_t current, int niter, size_t nchunks) {
-  double elapsed_usecs = (double)blosc_elapsed_usecs(last, current);
+  double elapsed_usecs = blosc_elapsed_usecs(last, current);
   return elapsed_usecs / (double)(niter * nchunks);
 }
 
 
-#define CHUNKSIZE 5 * 1000 * 1000
+#define CHUNKSIZE (5 * 1000 * 1000)
 #define NCHUNKS 100
 #define NTHREADS 2
 
 
 int main() {
   int32_t *data, *data_dest;
-  static blosc2_sparams sparams;
-  schunk_header* schunk;
-  int isize = CHUNKSIZE * sizeof(int32_t);
+  blosc2_cparams cparams = BLOSC_CPARAMS_DEFAULTS;
+  blosc2_dparams dparams = BLOSC_DPARAMS_DEFAULTS;
+  blosc2_schunk *schunk;
+  size_t isize = CHUNKSIZE * sizeof(int32_t);
   int dsize;
   int64_t nbytes, cbytes;
-  int i, nchunk, nchunks;
+  size_t nchunk;
+  size_t nchunks = 0;
   blosc_timestamp_t last, current;
   float totaltime;
   float totalsize = isize * NCHUNKS;
 
   data = malloc(CHUNKSIZE * sizeof(int32_t));
   data_dest = malloc(CHUNKSIZE * sizeof(int32_t));
-  for (i = 0; i < CHUNKSIZE; i++) {
+  for (int i = 0; i < CHUNKSIZE; i++) {
     data[i] = i;
   }
 
@@ -128,19 +128,19 @@ int main() {
   /* Initialize the Blosc compressor */
   blosc_init();
 
-  blosc_set_nthreads(NTHREADS);
-
   /* Create a super-chunk container */
-  sparams.filters[0] = BLOSC_DELTA;
-  sparams.filters[1] = BLOSC_SHUFFLE;
-  sparams.compressor = BLOSC_BLOSCLZ;
-  sparams.clevel = 5;
-  schunk = blosc2_new_schunk(&sparams);
+  cparams.filters[0] = BLOSC_DELTA;
+  //cparams.filters[BLOSC_MAX_FILTERS - 1] = BLOSC_BITSHUFFLE;
+  cparams.typesize = sizeof(int32_t);
+  cparams.compcode = BLOSC_BLOSCLZ;
+  cparams.clevel = 1;
+  cparams.nthreads = NTHREADS;
+  schunk = blosc2_new_schunk(cparams, dparams);
 
-  /* Append the reference chunk first */
+  /* Append chunks (the first will be taken as reference for delta) */
   blosc_set_timestamp(&last);
   for (nchunk = 0; nchunk < NCHUNKS; nchunk++) {
-    nchunks = blosc2_append_buffer(schunk, sizeof(int32_t), isize, data);
+    nchunks = blosc2_append_buffer(schunk, isize, data);
   }
   blosc_set_timestamp(&current);
   totaltime = (float)getseconds(last, current);
@@ -171,9 +171,10 @@ int main() {
 
   printf("Decompression successful!\n");
 
-  for (i = 0; i < CHUNKSIZE; i++) {
+  for (int i = 0; i < CHUNKSIZE; i++) {
     if (data[i] != data_dest[i]) {
-      printf("Decompressed data differs from original %d, %d, %d!\n", i, data[i], data_dest[i]);
+      printf("Decompressed data differs from original %d, %d, %d!\n",
+             i, data[i], data_dest[i]);
       return -1;
     }
   }

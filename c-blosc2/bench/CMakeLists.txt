@@ -1,16 +1,26 @@
-# sources
+# sources for main bench
 set(SOURCES bench.c)
-
+# sources for delta filter
+set(SOURCES_DELTA delta_schunk.c)
+# sources for trunc_prec filter
+set(SOURCES_TRUNC_PREC trunc_prec_schunk.c)
 
 # targets
 add_executable(bench ${SOURCES})
+add_executable(delta_schunk ${SOURCES_DELTA})
+add_executable(trunc_prec_schunk ${SOURCES_TRUNC_PREC})
 if (UNIX AND NOT APPLE)
     # cmake is complaining about LINK_PRIVATE in original PR
     # and removing it does not seem to hurt, so be it.
     # target_link_libraries(bench LINK_PRIVATE rt)
     target_link_libraries(bench rt)
+    target_link_libraries(delta_schunk rt)
+    target_link_libraries(trunc_prec_schunk rt)
 endif (UNIX AND NOT APPLE)
 target_link_libraries(bench blosc_shared)
+target_link_libraries(delta_schunk blosc_shared)
+target_link_libraries(trunc_prec_schunk blosc_shared)
+
 
 # have to copy blosc dlls on Windows
 if (MSVC)
@@ -43,6 +53,9 @@ if (BUILD_TESTS)
             add_test(test_lz4_shuffle_1 bench lz4 ${SHUFFLE_1_OPTS})
             # add_test(test_lz4hc_shuffle_1 bench lz4hc ${SHUFFLE_1_OPTS})
         endif (HAVE_LZ4)
+        if (HAVE_LIZARD)
+            add_test(test_lizard_shuffle_1 bench lizard ${SHUFFLE_1_OPTS})
+        endif (HAVE_LIZARD)
         if (HAVE_SNAPPY)
             add_test(test_snappy_shuffle_1 bench snappy ${SHUFFLE_1_OPTS})
         endif (HAVE_SNAPPY)
@@ -62,6 +75,9 @@ if (BUILD_TESTS)
             add_test(test_lz4_shuffle_n bench lz4 ${SHUFFLE_N_OPTS})
             add_test(test_lz4hc_shuffle_n bench lz4hc ${SHUFFLE_N_OPTS})
         endif (HAVE_LZ4)
+        if (HAVE_LIZARD)
+            add_test(test_lizard_shuffle_n bench lizard ${SHUFFLE_N_OPTS})
+        endif (HAVE_LIZARD)
         if (HAVE_SNAPPY)
             add_test(test_snappy_shuffle_n bench snappy ${SHUFFLE_N_OPTS})
         endif (HAVE_SNAPPY)
@@ -100,6 +116,9 @@ if (BUILD_TESTS)
             add_test(test_lz4_bitshuffle_n bench lz4 ${BITSHUFFLE_N_OPTS})
             # add_test(test_lz4hc_bitshuffle_n bench lz4hc ${BITSHUFFLE_N_OPTS})
         endif (HAVE_LZ4)
+        if (HAVE_LIZARD)
+            add_test(test_lizard_bitshuffle_n bench lizard ${BITSHUFFLE_N_OPTS})
+        endif (HAVE_LIZARD)
         if (HAVE_SNAPPY)
             add_test(test_snappy_bitshuffle_n bench snappy ${BITSHUFFLE_N_OPTS})
         endif (HAVE_SNAPPY)
@@ -113,11 +132,22 @@ if (BUILD_TESTS)
 
     option(TEST_INCLUDE_BENCH_SUITE "Include bench suite in the tests" OFF)
     if (TEST_INCLUDE_BENCH_SUITE)
-        add_test(test_hardsuite blosc blosclz shuffle suite)
+        add_test(test_hardsuite bench blosclz shuffle suite)
     endif (TEST_INCLUDE_BENCH_SUITE)
 
     option(TEST_INCLUDE_BENCH_DEBUGSUITE "Include bench debugsuite in the tests" OFF)
     if (TEST_INCLUDE_BENCH_DEBUGSUITE)
         add_test(test_debugsuite bench blosclz shuffle debugsuite)
     endif (TEST_INCLUDE_BENCH_DEBUGSUITE)
+
+    option(TEST_INCLUDE_BENCH_DELTA "Include delta bench in the tests" ON)
+    if (TEST_INCLUDE_BENCH_DELTA)
+        add_test(test_bench_delta delta_schunk)
+    endif (TEST_INCLUDE_BENCH_DELTA)
+
+    option(TEST_INCLUDE_BENCH_TRUNC_PREC "Include trunc bench in the tests" ON)
+    if (TEST_INCLUDE_BENCH_TRUNC_PREC)
+        add_test(test_bench_trunc_prec trunc_prec_schunk)
+    endif (TEST_INCLUDE_BENCH_TRUNC_PREC)
+
 endif (BUILD_TESTS)

@@ -21,62 +21,101 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 #include "blosc.h"
 
-#define SIZE 50 * 1000
-#define NCHUNKS 1000
+#define KB  1024.
+#define MB  (1024*KB)
+#define GB  (1024*MB)
+
+#define CHUNKSIZE 200 * 1000
+#define NCHUNKS 500
+//#define NCHUNKS 1
+
+/* The type of timestamp used on this system. */
+#define blosc_timestamp_t struct timespec
+
+/* Set a timestamp value to the current time. */
+void blosc_set_timestamp(blosc_timestamp_t* timestamp) {
+  clock_gettime(CLOCK_MONOTONIC, timestamp);
+}
+
+/* Given two timestamp values, return the difference in microseconds. */
+double blosc_elapsed_usecs(blosc_timestamp_t start_time, blosc_timestamp_t end_time) {
+  return (1e6 * (end_time.tv_sec - start_time.tv_sec))
+         + (1e-3 * (end_time.tv_nsec - start_time.tv_nsec));
+}
+
+/* Given two timeval stamps, return the difference in seconds */
+double getseconds(blosc_timestamp_t last, blosc_timestamp_t current) {
+  return 1e-6 * blosc_elapsed_usecs(last, current);
+}
 
 
 int main() {
-  static int32_t data[SIZE];
-  static int32_t data_dest[SIZE];
-  int isize = SIZE * sizeof(int32_t);
+  static int64_t data[CHUNKSIZE];
+  static int64_t data_dest[CHUNKSIZE];
+  const int isize = CHUNKSIZE * sizeof(int64_t);
   int dsize;
   int32_t nbytes, cbytes;
-  blosc2_sparams sparams = BLOSC_SPARAMS_DEFAULTS;
-  blosc2_sheader* sheader;
+  blosc2_cparams cparams = BLOSC_CPARAMS_DEFAULTS;
+  blosc2_dparams dparams = BLOSC_DPARAMS_DEFAULTS;
+  blosc2_schunk* schunk;
   int i, nchunk, nchunks;
+  blosc_timestamp_t last, current;
+  double ttotal;
 
   printf("Blosc version info: %s (%s)\n",
          BLOSC_VERSION_STRING, BLOSC_VERSION_DATE);
 
   /* Initialize the Blosc compressor */
   blosc_init();
-  blosc_set_nthreads(2);
+  blosc_set_nthreads(4);
 
   /* Create a super-chunk container */
-  sparams.filters[0] = BLOSC_DELTA;
-  sparams.filters[1] = BLOSC_BITSHUFFLE;
-  sheader = blosc2_new_schunk(&sparams);
+  cparams.typesize = 8;
+  cparams.filters[0] = BLOSC_DELTA;
+  cparams.compcode = BLOSC_BLOSCLZ;
+  cparams.clevel = 1;
+  schunk = blosc2_new_schunk(cparams, dparams);
 
+  blosc_set_timestamp(&last);
   for (nchunk = 1; nchunk <= NCHUNKS; nchunk++) {
-
-    for (i = 0; i < SIZE; i++) {
+    for (i = 0; i < CHUNKSIZE; i++) {
       data[i] = i * nchunk;
     }
-
-    nchunks = blosc2_append_buffer(sheader, sizeof(int32_t), isize, data);
+    nchunks = blosc2_append_buffer(schunk, isize, data);
     assert(nchunks == nchunk);
   }
-
   /* Gather some info */
-  nbytes = sheader->nbytes;
-  cbytes = sheader->cbytes;
-  printf("Compression super-chunk: %d -> %d (%.1fx)\n",
-         nbytes, cbytes, (1. * nbytes) / cbytes);
+  nbytes = schunk->nbytes;
+  cbytes = schunk->cbytes;
+  blosc_set_timestamp(&current);
+  ttotal = (double)getseconds(last, current);
+  printf("Compression ratio: %.1f MB -> %.1f MB (%.1fx)\n",
+         nbytes / MB, cbytes / MB, (1. * nbytes) / cbytes);
+  printf("Compression time: %.3g s, %.1f MB/s\n",
+         ttotal, nbytes / (ttotal * MB));
 
   /* Retrieve and decompress the chunks (0-based count) */
-  dsize = blosc2_decompress_chunk(sheader, 0, (void*)data_dest, isize);
+  blosc_set_timestamp(&last);
+  for (nchunk = NCHUNKS-1; nchunk >= 0; nchunk--) {
+    dsize = blosc2_decompress_chunk(schunk, nchunk, (void *)data_dest, isize);
+  }
   if (dsize < 0) {
     printf("Decompression error.  Error code: %d\n", dsize);
     return dsize;
   }
+  blosc_set_timestamp(&current);
+  ttotal = (double)getseconds(last, current);
+  printf("Decompression time: %.3g s, %.1f MB/s\n",
+         ttotal, nbytes / (ttotal * MB));
 
-  printf("Decompression successful!\n");
-
-  for (i = 0; i < SIZE; i++) {
-    if (data_dest[i] != i) {
-      printf("Decompressed data differs from original %d, %d, %d!\n", i, data[i], data_dest[i]);
+  /* Check integrity of the first chunk */
+  for (i = 0; i < CHUNKSIZE; i++) {
+    if (data_dest[i] != (uint64_t)i) {
+      printf("Decompressed data differs from original %d, %jd!\n",
+             i, data_dest[i]);
       return -1;
     }
   }
@@ -84,9 +123,7 @@ int main() {
   printf("Successful roundtrip!\n");
 
   /* Free resources */
-  /* Destroy the super-chunk */
-  blosc2_destroy_schunk(sheader);
-  /* Destroy the Blosc environment */
+  blosc2_destroy_schunk(schunk);
   blosc_destroy();
 
   return 0;

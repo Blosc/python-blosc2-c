@@ -66,9 +66,9 @@ int main() {
   packed = blosc2_packed_append_buffer(packed, sizeof(int32_t), isize, data);
 
   /* Gather some info */
-  assert(*(int64_t*)((char *)packed + 16) == 2);
-  nbytes = *(int64_t*)((char *)packed + 24);
-  cbytes = *(int64_t*)((char *)packed + 32);
+  assert(*(int64_t*)(packed + 16) == 2);
+  nbytes = *(int64_t*)(packed + 24);
+  cbytes = *(int64_t*)(packed + 32);
   printf("Compression super-chunk: %ld -> %ld (%.1fx)\n",
          (long)nbytes, (long)cbytes, (1. * nbytes) / cbytes);
 
