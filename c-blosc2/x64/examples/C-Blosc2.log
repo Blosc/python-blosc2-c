@@ -1,0 +1,108 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(936,5): warning MSB8027: Two or more files with the name of delta_schunk.c will produce outputs to the same location. This can lead to an incorrect build result.  The files involved are bench\delta_schunk.c, examples\delta_schunk.c.
+  test_shuffle_roundtrip_sse2.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_shuffle_roundtrip_generic.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_shuffle_roundtrip_avx2.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_nthreads.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_nolock.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_nolock.c(12): fatal error C1083: No se puede abrir el archivo incluir: 'unistd.h': No such file or directory
+  test_noinit.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_noinit.c(14): fatal error C1083: No se puede abrir el archivo incluir: 'unistd.h': No such file or directory
+  test_maxout.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_getitem.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_delta_schunk.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_contexts.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_compress_roundtrip.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_compressor.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  test_api.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\test_common.h(24): fatal error C1083: No se puede abrir el archivo incluir: 'win32/stdint-windows.h': No such file or directory
+  print_versions.c
+  gcc-segfault-issue.c
+c:\users\shurberto\theworkroom\c-blosc2\tests\gcc-segfault-issue.c(37): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  zstd_v06.c
+  zstd_v05.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\legacy\zstd_v05.h(43): fatal error C1083: No se puede abrir el archivo incluir: 'mem.h': No such file or directory
+  zstd_v04.c
+  zstd_v03.c
+  zstd_v02.c
+  Generando código...
+  Compilando...
+  zstd_v01.c
+  zdict.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\dictbuilder\zdict.c(60): fatal error C1083: No se puede abrir el archivo incluir: 'mem.h': No such file or directory
+  divsufsort.c
+  zstd_decompress.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\decompress\zstd_decompress.c(58): fatal error C1083: No se puede abrir el archivo incluir: 'mem.h': No such file or directory
+  zbuff_decompress.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\decompress\zbuff_decompress.c(37): fatal error C1083: No se puede abrir el archivo incluir: 'error_private.h': No such file or directory
+  huf_decompress.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\decompress\huf_decompress.c(63): fatal error C1083: No se puede abrir el archivo incluir: 'bitstream.h': No such file or directory
+  zstd_compress.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\compress\zstd_compress.c(55): fatal error C1083: No se puede abrir el archivo incluir: 'mem.h': No such file or directory
+  zbuff_compress.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\compress\zbuff_compress.c(37): fatal error C1083: No se puede abrir el archivo incluir: 'error_private.h': No such file or directory
+  huf_compress.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\compress\huf_compress.c(64): fatal error C1083: No se puede abrir el archivo incluir: 'bitstream.h': No such file or directory
+  fse_compress.c
+c:\users\shurberto\theworkroom\c-blosc2\internal-complibs\zstd-0.7.4\compress\fse_compress.c(59): fatal error C1083: No se puede abrir el archivo incluir: 'bitstream.h': No such file or directory
+  zstd_common.c
+  xxhash.c
+  fse_decompress.c
+  entropy_common.c
+  miniz.c
+  lz4hc.c
+  lz4.c
+  win-dynamic-linking.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\win-dynamic-linking.c(28): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  simple_schunk.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\simple_schunk.c(25): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  simple.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\simple.c(24): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  Generando código...
+  Compilando...
+  noinit.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\noinit.c(33): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  multithread.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\multithread.c(45): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  many_compressors.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\many_compressors.c(36): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  delta_schunk.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\delta_schunk.c(24): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  delta_packed_schunk.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\delta_packed_schunk.c(24): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  contexts.c
+c:\users\shurberto\theworkroom\c-blosc2\examples\contexts.c(24): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  pthread.c
+  shuffle.c
+  Hardware-acceleration detection not implemented for the target architecture. Only the generic shuffle/unshuffle routines will be available.
+  shuffle-sse2.c
+  shuffle-neon.c
+c:\users\shurberto\theworkroom\c-blosc2\blosc\shuffle-neon.c(15): fatal error C1189: #error:  NEON is not supported by the target architecture/platform and/or this compiler.
+  shuffle-generic.c
+  shuffle-avx2.c
+c:\users\shurberto\theworkroom\c-blosc2\blosc\shuffle-avx2.c(14): fatal error C1189: #error:  AVX2 is not supported by the target architecture/platform and/or this compiler.
+  schunk.c
+  delta.c
+  blosclz.c
+  blosc.c
+  bitshuffle-sse2.c
+  bitshuffle-neon.c
+c:\users\shurberto\theworkroom\c-blosc2\blosc\bitshuffle-neon.c(14): fatal error C1189: #error:  NEON is not supported by the target architecture/platform and/or this compiler.
+  bitshuffle-generic.c
+  bitshuffle-avx2.c
+c:\users\shurberto\theworkroom\c-blosc2\blosc\bitshuffle-avx2.c(22): fatal error C1189: #error:  AVX2 is not supported by the target architecture/platform and/or this compiler.
+  Generando código...
+  Compilando...
+  delta_schunk.c
+c:\users\shurberto\theworkroom\c-blosc2\bench\delta_schunk.c(36): fatal error C1083: No se puede abrir el archivo incluir: 'blosc.h': No such file or directory
+  bench.c
+  Generando código...

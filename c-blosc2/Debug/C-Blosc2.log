@@ -1,0 +1,2 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(936,5): warning MSB8027: Two or more files with the name of delta_schunk.c will produce outputs to the same location. This can lead to an incorrect build result.  The files involved are bench\delta_schunk.c, examples\delta_schunk.c.
+cl : Línea de comandos error D8045: no se puede compilar el archivo de C 'examples\delta_packed_schunk.c' con la opción /clr

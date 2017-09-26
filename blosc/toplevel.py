@@ -89,10 +89,6 @@ def set_nthreads(nthreads):
     2
 
     """
-    if nthreads > blosc.MAX_THREADS:
-        raise ValueError("the number of threads cannot be larger than %d" %
-                         blosc.MAX_THREADS)
-
     return _ext.set_nthreads(nthreads)
 
 
@@ -134,30 +130,30 @@ def get_blocksize():
     return _ext.get_blocksize()
 
 
-    
-def set_releasegil( gilstate ):
+def set_releasegil(gilstate):
     """
     set_releasegil( gitstate )
-    
+
     Sets a boolean on whether to release the Python global inter-lock (GIL) 
     during c-blosc compress and decompress operations or not.  This defaults 
     to False.
-    
+
     Notes
     -----
-    
+
     Designed to be used with larger chunk sizes and a ThreadPool.  There is a 
     small performance penalty with releasing the GIL that will more harshly 
     penalize small block sizes.
-    
+
     Examples
     --------
-    
-    >>> oldReleaseState = blosc.set_releasegil(True)
-    
+
+    #>>> oldReleaseState = blosc.set_releasegil(True)
+
     """
     gilstate = bool(gilstate)
-    return _ext.set_releasegil( gilstate )
+    return _ext.set_releasegil(gilstate)
+
 
 def compressor_list():
     """
@@ -314,7 +310,7 @@ def _check_shuffle(shuffle):
         raise ValueError("shuffle can only be one of NOSHUFFLE, SHUFFLE"
                          " and BITSHUFFLE.")
     if (shuffle == blosc.BITSHUFFLE and
-        LooseVersion(blosc.blosclib_version) < LooseVersion("1.8.0")):
+            LooseVersion(blosc.blosclib_version) < LooseVersion("1.8.0")):
         raise ValueError("You need C-Blosc 1.8.0 or higher for using"
                          " BITSHUFFLE.")
 
@@ -683,7 +679,7 @@ def pack_array(array, clevel=9, shuffle=blosc.SHUFFLE, cname='blosclz'):
         raise TypeError(
             "only NumPy ndarray objects supported as input")
     itemsize = array.itemsize
-    _check_input_length('array size', array.size*itemsize)
+    _check_input_length('array size', array.size * itemsize)
     _check_typesize(array.itemsize)
     _check_shuffle(shuffle)
     _check_clevel(clevel)

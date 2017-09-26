@@ -235,9 +235,9 @@ compress_helper(void * input, size_t nbytes, size_t typesize,
     
     _save = PyEval_SaveThread();
     blocksize = blosc_get_blocksize();
-    // if blocksize==0, blosc_compress_ctx will try to auto-optimize it.
+    // if blocksize==0, blosc2_compress_ctx will try to auto-optimize it.
     nthreads = blosc_get_nthreads();
-    cbytes = blosc_compress_ctx(clevel, shuffle, typesize, nbytes,
+    cbytes = blosc2_compress_ctx(clevel, shuffle, typesize, nbytes,
 			  input, output_ptr, nbytes+BLOSC_MAX_OVERHEAD,
                cname, blocksize, nthreads);
      PyEval_RestoreThread(_save);
@@ -399,14 +399,14 @@ decompress_helper(void * input, size_t nbytes, void * output)
   PyThreadState *_save = NULL;
   
   /* Do the decompression */
-//  int blosc_decompress_ctx(const void *src, void *dest, size_t destsize,
+//  int blosc2_decompress_ctx(const void *src, void *dest, size_t destsize,
 //                         int numinternalthreads)
   if( RELEASEGIL )
   { 
     
     _save = PyEval_SaveThread();
     nthreads = blosc_get_nthreads();
-    err = blosc_decompress_ctx(input, output, nbytes, nthreads);
+    err = blosc2_decompress_ctx(input, output, nbytes, nthreads);
     PyEval_RestoreThread(_save);
     _save = NULL;
   }
@@ -628,7 +628,6 @@ PyInit_blosc_extension(void) {
 
   /* Integer macros */
   PyModule_AddIntMacro(m, BLOSC_MAX_BUFFERSIZE);
-  PyModule_AddIntMacro(m, BLOSC_MAX_THREADS);
   PyModule_AddIntMacro(m, BLOSC_MAX_TYPESIZE);
   PyModule_AddIntMacro(m, BLOSC_NOSHUFFLE);
   PyModule_AddIntMacro(m, BLOSC_SHUFFLE);
