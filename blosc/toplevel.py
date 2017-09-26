@@ -148,7 +148,7 @@ def set_releasegil(gilstate):
     Examples
     --------
 
-    #>>> oldReleaseState = blosc.set_releasegil(True)
+    >>> oldReleaseState = blosc.set_releasegil(True)
 
     """
     gilstate = bool(gilstate)

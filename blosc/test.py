@@ -109,7 +109,6 @@ class TestCodec(unittest.TestCase):
         self.assertEqual(expected, blosc.decompress(bytearray(compressed)))
         self.assertEqual(expected, blosc.decompress(np.array([compressed])))
 
-    @unittest.skip("TODO GIL")
     def test_decompress_releasegil(self):
         import numpy as np
         # assume the expected answer was compressed from bytes
