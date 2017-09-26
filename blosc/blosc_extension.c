@@ -237,11 +237,20 @@ compress_helper(void * input, size_t nbytes, size_t typesize,
     blocksize = blosc_get_blocksize();
     // if blocksize==0, blosc2_compress_ctx will try to auto-optimize it.
     nthreads = blosc_get_nthreads();
-    cbytes = blosc2_compress_ctx(clevel, shuffle, typesize, nbytes,
-			  input, output_ptr, nbytes+BLOSC_MAX_OVERHEAD,
-               cname, blocksize, nthreads);
-     PyEval_RestoreThread(_save);
-     _save = NULL;
+    blosc2_cparams cparams = BLOSC_CPARAMS_DEFAULTS;
+    blosc2_context *cctx;
+    cparams.compcode = blosc_compname_to_compcode(cname);
+    cparams.clevel = clevel;
+    cparams.filters[BLOSC_MAX_FILTERS - 1] = shuffle;
+    cparams.blocksize = blocksize;
+    cparams.typesize = typesize;
+    cparams.nthreads = nthreads;
+    cctx = blosc2_create_cctx(cparams);
+    cbytes = blosc2_compress_ctx(cctx, nbytes, input, 
+                                 output_ptr, nbytes+BLOSC_MAX_OVERHEAD);
+    blosc2_free_ctx(cctx);
+    PyEval_RestoreThread(_save);
+    _save = NULL;
   }
   else
   { // Hold onto the Python GIL while compressing
@@ -406,7 +415,12 @@ decompress_helper(void * input, size_t nbytes, void * output)
     
     _save = PyEval_SaveThread();
     nthreads = blosc_get_nthreads();
-    err = blosc2_decompress_ctx(input, output, nbytes, nthreads);
+    blosc2_dparams dparams = BLOSC_DPARAMS_DEFAULTS;
+    blosc2_context *dctx;
+    dparams.nthreads = nthreads;
+    dctx = blosc2_create_dctx(dparams);
+    err = blosc2_decompress_ctx(dctx, input, output, nbytes);
+    blosc2_free_ctx(dctx);
     PyEval_RestoreThread(_save);
     _save = NULL;
   }
