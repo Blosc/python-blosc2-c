@@ -371,7 +371,7 @@ def compress(bytesobj, typesize=8, clevel=9, shuffle=blosc.SHUFFLE,
         default is blosc.SHUFFLE.
     cname : string (optional)
         The name of the compressor used internally in Blosc. It can be
-        any of the supported by Blosc ('blosclz', 'lz4', 'lz4hc',
+        any of the supported by Blosc ('blosclz', 'lizard', 'lz4', 'lz4hc',
         'snappy', 'zlib', 'zstd' and maybe others too). The default is
         'blosclz'.
 
@@ -434,7 +434,7 @@ def compress_ptr(address, items, typesize=8, clevel=9, shuffle=blosc.SHUFFLE,
         default is blosc.SHUFFLE.
     cname : string (optional)
         The name of the compressor used internally in Blosc. It can be
-        any of the supported by Blosc ('blosclz', 'lz4', 'lz4hc',
+        any of the supported by Blosc ('blosclz', 'lizard', 'lz4', 'lz4hc',
         'snappy', 'zlib', 'zstd' and maybe others too). The default is
         'blosclz'.
 
@@ -643,7 +643,7 @@ def pack_array(array, clevel=9, shuffle=blosc.SHUFFLE, cname='blosclz'):
         default is blosc.SHUFFLE.
     cname : string (optional)
         The name of the compressor used internally in Blosc. It can be
-        any of the supported by Blosc ('blosclz', 'lz4', 'lz4hc',
+        any of the supported by Blosc ('blosclz', 'lizard', 'lz4', 'lz4hc',
         'snappy', 'zlib', 'zstd' and maybe others too). The default is
         'blosclz'.
 

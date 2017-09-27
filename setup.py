@@ -58,6 +58,10 @@ BLOSC_DIR = os.environ.get('BLOSC_DIR', '')
 
 # Check for USE_CODEC environment variables
 try:
+    INCLUDE_LIZARD = os.environ['INCLUDE_LIZARD'] == '1'
+except KeyError:
+    INCLUDE_LIZARD = True
+try:
     INCLUDE_LZ4 = os.environ['INCLUDE_LZ4'] == '1'
 except KeyError:
     INCLUDE_LZ4 = True
@@ -117,7 +121,12 @@ else:
     inc_dirs += glob('c-blosc2/internal-complibs/*')
 
     # Codecs to be built with build_clib
-    print('hola', INCLUDE_LZ4)
+    if INCLUDE_LIZARD:
+        clibs.append(
+            ('lizard', {'sources': glob('c-blosc2/internal-complibs/lizard*/*.c')}))
+        inc_dirs += glob('c-blosc2/internal-complibs/lizard*')
+        def_macros += [('HAVE_LIZARD', 1)]
+
     if INCLUDE_LZ4:
         clibs.append(
             ('lz4', {'sources': glob('c-blosc2/internal-complibs/lz4*/*.c')}))
